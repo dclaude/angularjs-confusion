@@ -1,0 +1,111 @@
+<!-- angular template -->
+<div class="container">
+    <!--
+    adds the MenuController as the controller for this div (MenuController is defined below in a script element)
+    -->
+    <div class="row row-content" ng-controller="MenuController">
+
+       <!-- 
+       ng-if directive: display this message in case of error in the http response 
+       the variable $scope.showMenu is modified in controllers.js
+       -->
+       <div class="col-xs-12" ng-if="!showMenu">
+          <h3>{{message}}</h3>
+       </div>
+
+       <!-- inner div
+       on n'affiche le div ci-dessous que si la scope variable showDish est a true
+       donc si le http request pour recuperer les dishes est successful
+       -->
+       <div class="col-xs-12" ng-if="showMenu">
+          <!-- 
+          - the toggleDetails() function defined in app.js is called when the button is clicked
+          - dynamically change the label of a button depending on the value of a JS variable
+          -->
+          <button ng-click="toggleDetails()" class="btn btn-xs btn-primary pull-right" type="button">
+             {{showDetails ? 'Hide Details':'Show Details'}}
+          </button>  
+       </div>
+       <div class="col-xs-12" ng-if="showMenu">
+          <!-- bootstrap tabs -->
+          <ul class="nav nav-tabs" role="tablist">
+             <!--
+             ng-class directive
+             cette directive angular permet de choisir une CSS class a appliquer a une html element
+             ici on applique la bootstrap CSS class 'active' si la condition 'isSelected(1)' retourne true
+             -->
+             <li role="presentation" ng-class="{active:isSelected(1)}">
+                <!--
+                ng-click directive
+                this directive will be fired when the user clicks on the tab
+                so the select() function of the controller will be called with argument set to one each time this tab is clicked
+                -->
+                <a ng-click="select(1)" aria-controls="all menu" role="tab">The Menu</a>
+             </li>
+             <li role="presentation" ng-class="{active:isSelected(2)}">
+                <a ng-click="select(2)" aria-controls="appetizers" role="tab">Appetizers</a>
+             </li>
+             <li role="presentation" ng-class="{active:isSelected(3)}">
+                <a ng-click="select(3)" aria-controls="mains" role="tab">Mains</a>
+             </li>
+             <li role="presentation" ng-class="{active:isSelected(4)}">
+                <a ng-click="select(4)" aria-controls="desserts" role="tab">Desserts</a>
+             </li>
+          </ul>
+
+          <div class="tab-content">
+
+             <!--
+             dans cet exercise on construit dynamiquement plusieurs tabs a partir d'un seul tab-pane 
+             (grace a un angular filter sur les <li> de la <ul> contenue dans ce tab-pane)
+             dans une utilisation normale d'un bootstrap tabs, la webpage contient autant de tab-pane que l'on a de tab
+             -->
+             <ul class="media-list tab-pane fade in active">
+                <!-- 
+                - angular template
+                on definit ci-dessous un template de list-item <li> qui utilise la JS variable 'dishes' definie dans le controller
+                - ng-repeat
+                et avec la directive ng-repeat on instancie ce template pour chaque element du array 'dishes'
+                donc l'unique html element <li> ci-dessous va etre instancie autant de fois qu'il y a de item dans le array 'dishes'
+                - angular filter
+                the filter will use the variable 'filtText' from the controller to filter the items from the dishes array
+                cf explanation in paragpraph 'example: angular filter'
+                -->
+                <li class="media" ng-repeat="dish in dishes | filter:filtText">
+                   <div class="media-left media-middle">
+                      <!--
+                      use ui-href directive for state transition
+                      and give a parameter (dish id) which will be available in the controller associated to the state 'app.dishdetails'
+                      -->
+                      <a ui-sref="app.dishdetails({id: dish.id})">
+                         <img class="media-object img-thumbnail"
+                              ng-src={{dish.image}} alt="Uthappizza">
+                      </a>
+                   </div>
+                   <div class="media-body">
+                      <!-- on utilise la JS variable 'dish' dans une 'angular expression' (entre double braces) -->
+                      <h2 class="media-heading">{{dish.name}}
+                         <span class="label label-danger">{{dish.label}}</span>
+                         <!--
+                            use of angular currency filter (on etudiera le filters dans un prochain cours) 
+                            mais on voit que ca transforme la 'string' dish.price en une un prix avec une currency
+                            car on voit que le dans le label le prix s'affiche avec un symbole dollar
+                         -->
+                         <span class="badge">{{dish.price | currency}}</span
+                         ></h2>
+                      <!-- 
+                      ng-show directive
+                      the <p> element below is shown when the value of the 'showDetails' scope variable is true
+                      the showDetails variable is changed when the button 'Hide Details'/'Show Details' is clicked
+                      -->
+                      <p ng-show="showDetails">{{dish.description}}</p>
+                   </div>
+                </li>
+             </ul>
+          </div>
+
+       </div>
+
+    </div>
+</div>
+

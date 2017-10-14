@@ -1,0 +1,162 @@
+<!-- angular template -->
+<div class="container">
+    <div class="row row-content" ng-controller="DishDetailController">
+
+       <div class="col-xs-12" ng-if="!showDish">
+          <h3>{{message}}</h3>
+       </div>
+
+        <!-- dish details
+        on n'affiche le div ci-dessous que si la scope variable showDish est a true
+        donc si le http request pour recuperer les dishes est successful
+        -->
+        <div class="col-xs-12" ng-if="showDish">
+           <!-- use ui-sref for state transition -->
+           <button class="btn btn-xs btn-primary pull-right" type="button" ui-sref="app.menu">Back to Menu</button>
+        </div>
+        <div class="col-xs-12" ng-if="showDish">
+           <!-- bootstrap media object -->
+           <div class="media"> 
+              <div class="media-left media-middle"> 
+                 <a href="#">
+                    <img class="media-object img-thumbnail" ng-src={{dish.image}} alt="Uthappizza">
+                 </a> 
+              </div> 
+              <div class="media-body"> 
+                 <h2 class="media-heading">{{dish.name}}
+                    <span class="label label-danger">{{dish.label}}</span>
+                    <span class="badge">{{dish.price | currency}}</span>
+                 </h2>
+                 <p>{{dish.description}}</p>
+              </div> 
+           </div> 
+
+        </div>
+
+        <div class="col-xs-9 col-xs-offset-1">
+
+           <form class="form-horizontal" role="form"> 
+              <div class="form-group"> 
+                 <h4 class="col-xs-12 col-sm-4"><strong>Customer Comments</strong></h4>
+                 <label for="orderText" class="col-xs-12 col-sm-2 control-label">Sort by:</label>
+                 <div class="col-xs-12 col-sm-6"> 
+                    <!-- 
+                    two-way data binding: 
+                    - the input text below in the "view" is bound to the 'orderText' variable in the "model" 
+                    - Rq: 
+                    technically in this example the 'orderText' variable is defined in the body of the controller
+                    but in real-life it could be defined in the model on the server-side
+                    -->
+                    <input type="text" ng-model="orderText" class="form-control" id="orderText" name="orderText" 
+                           placeholder='[-]author|date|rating'>
+                 </div> 
+              </div> 
+           </form>
+
+           <!-- unordered list without bullets: apply the CSS class list-unstyled -->
+           <ul class="list-unstyled">
+              <!-- 
+              - use of ng-repeat directive to render all the comments in dish.comments 
+              - use of orderBy 'angular filter' to order the dishes by the orderText specified by the user
+              (the orderText must be one of the properties of the dish javascript object)
+              -->
+              <li ng-repeat="comment in dish.comments | orderBy:orderText">
+
+                    <blockquote> 
+                       <p>{{comment.rating}} Stars</p> 
+                       <p>{{comment.comment}}</p> 
+                       <footer>
+                          <!-- use of angular 'date filter' -->
+                          <cite title="Author">{{comment.author}}, {{comment.date | date}}</cite>
+                       </footer> 
+                    </blockquote>                 
+
+              </li>
+           </ul>
+
+        </div>
+        <!-- nested scope: parent scope is DishDetailController -->
+        <div class="col-xs-9 col-xs-offset-1" ng-controller="DishCommentController">
+
+            <!-- 
+            - preview of the comment 
+            - display the preview only if:
+            the user has entered valid information into the form, 
+            and the form is not in its pristine state.
+            -->
+            <ul class="list-unstyled" ng-show="commentForm.$valid && !commentForm.$pristine">
+              <li>
+                    <blockquote> 
+                       <p>{{mycomment.rating}} Stars</p> 
+                       <p>{{mycomment.comment}}</p> 
+                       <footer>
+                          <!-- use of angular 'date filter' -->
+                          <cite title="Author">{{mycomment.author}}, {{mycomment.date | date}}</cite>
+                       </footer> 
+                    </blockquote>                 
+              </li>
+            </ul>
+
+            <form class="form-horizontal" name="commentForm" ng-submit="submitComment()" novalidate>
+               <div class="form-group" ng-class="{ 'has-error': commentForm.author.$error.required && !commentForm.author.$pristine }">
+                    <label for="author" class="col-sm-3 control-label">Your Name</label>
+                    <div class="col-sm-9">
+                       <input type="text" class="form-control" id="author" name="author" placeholder="Enter Your Name" required
+                              ng-model="mycomment.author">
+                        <span ng-show="commentForm.author.$error.required && !commentForm.author.$pristine" class="help-block">
+                           Your name is required.
+                        </span>
+                    </div>
+                </div>
+
+                <!--
+                method1: radio button without angular
+                radio buttons with label on the same line
+                <div class="form-group">
+                   <label for="rating" class="col-sm-3 control-label">Rating</label>
+                   <div class="col-sm-9">
+                      <label class="radio-inline"><input type="radio" id="rating" name="rating">1 Stars</label>
+                      <label class="radio-inline"><input type="radio" id="rating" name="rating">2 Stars</label>
+                      <label class="radio-inline"><input type="radio" id="rating" name="rating">3 Stars</label>
+                      <label class="radio-inline"><input type="radio" id="rating" name="rating">4 Stars</label>
+                      <label class="radio-inline"><input type="radio" id="rating" name="rating" checked="checked">5 Stars</label>
+                   </div>
+                </div> 
+                -->
+                <!-- method2: radio button with angular -->
+                <div class="form-group">
+                   <label for="rating" class="col-sm-3 control-label">Number of Stars</label>
+                   <div class="col-sm-9">
+                      <!-- ratingValues is defined in app.js -->
+                      <label class="radio-inline" ng-repeat="ratingValue in ratingValues">
+                         <!-- 
+                         use of $parent because ng-repeat creates a child scope 
+                         reference: http://stackoverflow.com/questions/14775981/angularjs-using-ng-repeat-to-create-sets-of-radio-inputs
+                         -->
+                         <input type="radio" id="rating" name="rating" ng-value="ratingValue" ng-model="mycomment.rating">
+                         {{ratingValue}}
+                      </label>
+                   </div>
+                </div>
+
+                <div class="form-group" ng-class="{ 'has-error': commentForm.comment.$error.required && !commentForm.comment.$pristine }">
+                    <label for="comment" class="col-sm-3 control-label">Your Comments</label>
+                    <div class="col-sm-9">
+                        <textarea class="form-control" id="comment" name="comment" rows="12" required
+                                  ng-model="mycomment.comment">
+                        </textarea>
+                        <span ng-show="commentForm.comment.$error.required && !commentForm.comment.$pristine" class="help-block">
+                           A comment is required.
+                        </span>
+                    </div>
+                </div> 
+                <div class="form-group">
+                    <div class="col-sm-offset-3 col-sm-9">
+                        <button type="submit" class="btn btn-primary" ng-disabled="commentForm.$invalid">Send Comment</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
